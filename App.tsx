@@ -16,8 +16,7 @@ import { Challenge } from './types';
 import { 
   Box, RotateCw, Play, Pause, ShoppingCart, Trash2, Info, Layers, Undo, Redo, 
   Image as ImageIcon, Hammer, MousePointer2, Save, Upload, Move, AlertTriangle, Focus, Magnet, Settings, Copy, Clipboard, Leaf, Euro, Cuboid, Ruler, Layout, Grid3X3, Camera, Scaling, FileBox, HelpCircle, ChevronUp, ChevronDown, Trophy, Activity, Sun, Hand,
-  // Added missing Check icon import
-  Check, Bed, Laptop, Lightbulb, Book, Star, Lock, Armchair, Table, Monitor, Coffee, Square, Sofa, Image, DoorOpen, Maximize, TrendingUp, Columns
+  Check, Bed, Laptop, Lightbulb, Book, Star, Lock, Armchair, Table, Monitor, Coffee, Square, Sofa, Image, DoorOpen, Maximize, TrendingUp, Columns, X
 } from 'lucide-react';
 
 const PropIcon: React.FC<{ iconName: string; className?: string }> = ({ iconName, className }) => {
@@ -238,6 +237,7 @@ const App: React.FC = () => {
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
   const [forceRender, setForceRender] = useState(0); 
   const [celebrationProp, setCelebrationProp] = useState<PropType | null>(null);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   
   const [selectedBlockIds, setSelectedBlockIds] = useState<Set<string>>(new Set());
   const [selectedPropIds, setSelectedPropIds] = useState<Set<string>>(new Set());
@@ -980,10 +980,18 @@ const App: React.FC = () => {
       </header>
 
       <div className="flex-1 flex relative overflow-hidden">
-        <aside className="w-64 bg-white border-r flex flex-col z-10 overflow-y-auto shrink-0 select-none hidden md:flex">
-            <div className="p-2 grid grid-cols-2 gap-2 border-b bg-gray-50">
-                <button onClick={undo} disabled={historyIndex <= 0} className="flex items-center justify-center gap-1 p-2 rounded bg-white border hover:bg-gray-100 disabled:opacity-50 text-sm font-medium"><Undo size={14} /> Undo</button>
-                <button onClick={redo} disabled={historyIndex >= history.length - 1} className="flex items-center justify-center gap-1 p-2 rounded bg-white border hover:bg-gray-100 disabled:opacity-50 text-sm font-medium"><Redo size={14} /> Redo</button>
+        {/* Mobile Menu Backdrop */}
+        {showMobileMenu && (
+            <div className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm" onClick={() => setShowMobileMenu(false)} />
+        )}
+        <aside className={`w-fit min-w-[16rem] max-w-[20rem] bg-white border-r flex flex-col z-50 overflow-y-auto shrink-0 select-none absolute md:relative h-full transition-transform duration-300 md:translate-x-0 ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className="md:hidden flex items-center justify-between p-3 border-b bg-gray-50">
+                <span className="font-bold text-gray-800">Builder Menu</span>
+                <button onClick={() => setShowMobileMenu(false)} className="p-1 rounded hover:bg-gray-200"><X size={20}/></button>
+            </div>
+            <div className="p-2 grid grid-cols-2 gap-2 border-b bg-gray-50 md:flex md:grid-cols-none">
+                <button onClick={undo} disabled={historyIndex <= 0} className="flex-1 flex items-center justify-center gap-1 p-2 rounded bg-white border hover:bg-gray-100 disabled:opacity-50 text-sm font-medium"><Undo size={14} /> Undo</button>
+                <button onClick={redo} disabled={historyIndex >= history.length - 1} className="flex-1 flex items-center justify-center gap-1 p-2 rounded bg-white border hover:bg-gray-100 disabled:opacity-50 text-sm font-medium"><Redo size={14} /> Redo</button>
             </div>
             <div className="p-4 border-b">
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{mode === 'BUILD' ? 'Builder Mode' : (mode === 'MEASURE' ? 'Measure Tool' : 'Select Mode')}</h3>
@@ -1155,11 +1163,48 @@ const App: React.FC = () => {
              <button onClick={handleRecenter} className="absolute bottom-6 right-6 p-3 bg-white/90 backdrop-blur rounded-full shadow-lg text-gray-600 hover:text-orange-600 hover:scale-110 transition-all z-20" title="Recenter View"><Focus size={24} /></button>
              {!instructionMode && mode === 'BUILD' && <div className="absolute top-4 right-4 bg-white/80 backdrop-blur p-2 rounded text-xs text-gray-500 font-mono pointer-events-none z-10">ROT: [X:{rotation.x % 4}, Y:{rotation.y % 4}, Z:{rotation.z % 4}]</div>}
              {instructionMode && (
-                 <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t p-6 shadow-up-lg transition-transform duration-300 z-20">
+                 <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t p-6 shadow-up-lg transition-transform duration-300 z-20 md:pb-6 pb-20">
                      <div className="max-w-3xl mx-auto">
                         <div className="flex justify-between items-center mb-4"><div><h2 className="text-lg font-bold text-gray-800">Assembly Instructions</h2><p className="text-orange-600 font-medium">{currentStepName}</p></div><div className="text-2xl font-mono text-gray-300">{String(currentStep + 1).padStart(2, '0')} / {String(instructionSteps.length).padStart(2, '0')}</div></div>
                         <div className="flex items-center gap-4"><button onClick={() => setIsPlaying(!isPlaying)} className="w-12 h-12 rounded-full bg-orange-600 text-white flex items-center justify-center hover:bg-orange-700 shadow-lg">{isPlaying ? <Pause fill="currentColor" /> : <Play fill="currentColor" className="ml-1" />}</button><input type="range" min="0" max={Math.max(0, instructionSteps.length - 1)} value={currentStep} onChange={(e) => { setIsPlaying(false); setCurrentStep(parseInt(e.target.value)); }} className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-600" /></div>
                      </div>
+                 </div>
+             )}
+
+             {/* Mobile / Tablet Action Bar */}
+             {!instructionMode && (
+                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-white/90 backdrop-blur-md shadow-2xl border border-gray-200 rounded-2xl p-2 flex items-center gap-2 md:hidden">
+                    <button onClick={() => setShowMobileMenu(true)} className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 active:bg-gray-300 transition-colors" title="Open Builder Menu">
+                        <Layout size={20} />
+                    </button>
+                    <div className="w-px h-8 bg-gray-300 mx-1"></div>
+                    <button onClick={undo} disabled={historyIndex <= 0} className="p-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-xl disabled:opacity-30 transition-colors">
+                        <Undo size={20} />
+                    </button>
+                    <button onClick={() => { if (mode === 'BUILD') setRotation(r => ({ ...r, z: r.z - 1 })); else if (mode === 'EDIT' && selectedBlockIds.size > 0 && !isMoving) handleUpdateSelected({x:0, y:0, z:0}, {x:0, y:0, z:-1}); }} className="p-3 text-blue-600 hover:bg-blue-50 active:bg-blue-100 rounded-xl transition-colors" title="Rotate Z">
+                        <RotateCw size={20} />
+                    </button>
+                    <button onClick={() => { if (mode === 'BUILD') setRotation(r => ({ ...r, y: r.y + 1 })); }} className={`p-3 text-orange-600 hover:bg-orange-50 active:bg-orange-100 rounded-xl transition-colors ${mode !== 'BUILD' ? 'opacity-30 pointer-events-none' : ''}`} title="Rotate Y">
+                        <Layers size={20} />
+                    </button>
+                    <div className="w-px h-8 bg-gray-300 mx-1"></div>
+                    {mode === 'EDIT' ? (
+                        <>
+                            <button onClick={handleCopy} disabled={selectedBlockIds.size === 0} className="p-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-xl disabled:opacity-30 transition-colors" title="Copy">
+                                <Copy size={20} />
+                            </button>
+                            <button onClick={handlePaste} disabled={clipboard.length === 0} className="p-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-xl disabled:opacity-30 transition-colors" title="Paste">
+                                <Clipboard size={20} />
+                            </button>
+                            <button onClick={handleDeleteSelected} disabled={selectedBlockIds.size === 0 && selectedPropIds.size === 0} className="p-3 text-red-600 hover:bg-red-50 active:bg-red-100 rounded-xl disabled:opacity-30 transition-colors" title="Delete">
+                                <Trash2 size={20} />
+                            </button>
+                        </>
+                    ) : (
+                        <button onClick={() => setMode('EDIT')} className="p-3 text-blue-600 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 rounded-xl font-bold text-sm px-4">
+                            Select
+                        </button>
+                    )}
                  </div>
              )}
         </div>

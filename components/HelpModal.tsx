@@ -166,22 +166,22 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
                          
                          {/* Mouse */}
                          <div>
-                             <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-2"><Mouse size={18}/> Mouse Interactions</h4>
+                             <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-2"><Mouse size={18}/> Mouse & Touch Interactions</h4>
                              <div className="space-y-3 text-sm text-gray-600">
                                  <div className="flex justify-between">
-                                     <span>Left Click</span>
+                                     <span>Left Click / Tap</span>
                                      <span className="font-semibold text-gray-800">Place Block / Select</span>
                                  </div>
                                  <div className="flex justify-between">
-                                     <span>Left Drag</span>
+                                     <span>Left Drag / One Finger</span>
                                      <span className="font-semibold text-gray-800">Orbit Camera</span>
                                  </div>
                                  <div className="flex justify-between">
-                                     <span>Right Drag</span>
+                                     <span>Right Drag / Two Fingers</span>
                                      <span className="font-semibold text-gray-800">Pan Camera</span>
                                  </div>
                                  <div className="flex justify-between">
-                                     <span>Scroll Wheel</span>
+                                     <span>Scroll Wheel / Pinch</span>
                                      <span className="font-semibold text-gray-800">Zoom In / Out</span>
                                  </div>
                                  <div className="flex justify-between">
@@ -193,7 +193,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
 
                          {/* Keyboard */}
                          <div>
-                             <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-2"><Keyboard size={18}/> Keyboard Shortcuts</h4>
+                             <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-2"><Keyboard size={18}/> Keyboard Shortcuts (Desktop)</h4>
                              <div className="space-y-3 text-sm text-gray-600">
                                  <div className="flex justify-between">
                                      <span className="bg-gray-100 px-2 py-0.5 rounded border">Tab</span>
@@ -216,6 +216,12 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
                                      <span className="font-semibold text-gray-800">Copy / Paste Selection</span>
                                  </div>
                              </div>
+                         </div>
+                         
+                         {/* Mobile Actions */}
+                         <div className="md:col-span-2 pt-4 mt-2 border-t">
+                             <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2 mb-2"><Hand size={18}/> Mobile & Tablet Tools</h4>
+                             <p className="text-sm text-gray-600 mb-3">When building on a smartphone or tablet, use the <strong>Mobile Action Bar</strong> at the bottom of the screen to quickly rotate pieces, delete selections, undo, and copy/paste without a keyboard.</p>
                          </div>
                      </div>
                 </div>
