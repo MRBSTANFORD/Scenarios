@@ -1,8 +1,8 @@
 
 import React, { useMemo, useRef } from 'react';
-import { X, Printer, Leaf, Euro, Weight, Box, FileDown } from 'lucide-react';
+import { X, Printer, Leaf, Euro, Weight, Box, FileDown, Clock } from 'lucide-react';
 import { PlacedBrock, BrockType } from '../types';
-import { BROCK_SPECS, APP_CONFIG } from '../constants';
+import { BROCK_SPECS, APP_CONFIG, AppConfigService } from '../constants';
 
 interface BOMModalProps {
   blocks: PlacedBrock[];
@@ -160,6 +160,10 @@ export const BOMModal: React.FC<BOMModalProps> = ({ blocks, onClose }) => {
                     <div className="flex justify-between py-2 border-b border-gray-100 text-gray-600">
                         <span className="flex items-center gap-2"><Weight size={14}/> Total Weight</span>
                         <span className="font-mono">{data.grandTotalWeight.toFixed(2)} kg</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-gray-100 text-gray-600">
+                        <span className="flex items-center gap-2" title="Estimated assembly time"><Clock size={14}/> Assembly Time</span>
+                        <span className="font-mono">{Math.ceil(blocks.length / (AppConfigService.get().assemblySpeedBlocksPerMinute || 4))} m</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-gray-100 text-green-700 font-medium">
                         <span className="flex items-center gap-2"><Leaf size={14}/> Total SDG Impact</span>

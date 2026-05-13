@@ -161,6 +161,7 @@ export interface AppConfig {
   prices: Record<BrockType, number>;
   weights: Record<BrockType, number>;
   sdgImpacts: Record<BrockType, number>; // New SDG Impact
+  assemblySpeedBlocksPerMinute: number;
   prompts: {
     instructionGeneration: string;
     designValidation: string;

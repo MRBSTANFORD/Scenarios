@@ -16,7 +16,7 @@ import { Challenge } from './types';
 import { 
   Box, RotateCw, Play, Pause, ShoppingCart, Trash2, Info, Layers, Undo, Redo, 
   Image as ImageIcon, Hammer, MousePointer2, Save, Upload, Move, AlertTriangle, Focus, Magnet, Settings, Copy, Clipboard, Leaf, Euro, Cuboid, Ruler, Layout, Grid3X3, Camera, Scaling, FileBox, HelpCircle, ChevronUp, ChevronDown, Trophy, Activity, Sun, Hand,
-  Check, Bed, Laptop, Lightbulb, Book, Star, Lock, Armchair, Table, Monitor, Coffee, Square, Sofa, Image, DoorOpen, Maximize, TrendingUp, Columns, X
+  Check, Bed, Laptop, Lightbulb, Book, Star, Lock, Armchair, Table, Monitor, Coffee, Square, Sofa, Image, DoorOpen, Maximize, TrendingUp, Columns, X, Clock
 } from 'lucide-react';
 
 const PropIcon: React.FC<{ iconName: string; className?: string }> = ({ iconName, className }) => {
@@ -87,6 +87,10 @@ const ProjectStatsHUD: React.FC<{
                     <div className="flex justify-between items-center text-gray-600 text-xs font-medium">
                         <div className="flex items-center gap-2"><Cuboid size={12} /> Blocks</div>
                         <span className="tabular-nums">{blockCount}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-gray-600 text-xs font-medium">
+                        <div className="flex items-center gap-2" title="Estimated assembly time"><Clock size={12} /> Assembly Time</div>
+                        <span className="tabular-nums">{Math.ceil(blockCount / (AppConfigService.get().assemblySpeedBlocksPerMinute || 4))} m</span>
                     </div>
                 </div>
                 {selectionSize && (
@@ -1173,36 +1177,48 @@ const App: React.FC = () => {
 
              {/* Mobile / Tablet Action Bar */}
              {!instructionMode && (
-                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-white/90 backdrop-blur-md shadow-2xl border border-gray-200 rounded-2xl p-2 flex items-center gap-2 md:hidden">
-                    <button onClick={() => setShowMobileMenu(true)} className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 active:bg-gray-300 transition-colors" title="Open Builder Menu">
+                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-white/90 backdrop-blur-md shadow-2xl border border-gray-200 rounded-2xl p-2 flex items-center gap-1 md:hidden overflow-x-auto max-w-[95vw]">
+                    <button onClick={() => setShowMobileMenu(true)} className="p-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 active:bg-gray-300 transition-colors flex flex-col items-center gap-1 min-w-[60px]" title="Open Builder Menu">
                         <Layout size={20} />
+                        <span className="text-[9px] font-bold uppercase">Menu</span>
                     </button>
-                    <div className="w-px h-8 bg-gray-300 mx-1"></div>
-                    <button onClick={undo} disabled={historyIndex <= 0} className="p-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-xl disabled:opacity-30 transition-colors">
+                    <div className="w-px h-8 bg-gray-300 mx-1 shrink-0"></div>
+                    <button onClick={undo} disabled={historyIndex <= 0} className="p-2 text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-xl disabled:opacity-30 transition-colors flex flex-col items-center gap-1 min-w-[60px]">
                         <Undo size={20} />
+                        <span className="text-[9px] font-bold uppercase">Undo</span>
                     </button>
-                    <button onClick={() => { if (mode === 'BUILD') setRotation(r => ({ ...r, z: r.z - 1 })); else if (mode === 'EDIT' && selectedBlockIds.size > 0 && !isMoving) handleUpdateSelected({x:0, y:0, z:0}, {x:0, y:0, z:-1}); }} className="p-3 text-blue-600 hover:bg-blue-50 active:bg-blue-100 rounded-xl transition-colors" title="Rotate Z">
+                    <button onClick={() => { if (mode === 'BUILD') setRotation(r => ({ ...r, z: r.z - 1 })); else if (mode === 'EDIT' && selectedBlockIds.size > 0 && !isMoving) handleUpdateSelected({x:0, y:0, z:0}, {x:0, y:0, z:-1}); }} className="p-2 text-blue-600 hover:bg-blue-50 active:bg-blue-100 rounded-xl transition-colors flex flex-col items-center gap-1 min-w-[60px]" title="Rotate Z">
                         <RotateCw size={20} />
+                        <span className="text-[9px] font-bold uppercase">Rot Z</span>
                     </button>
-                    <button onClick={() => { if (mode === 'BUILD') setRotation(r => ({ ...r, y: r.y + 1 })); }} className={`p-3 text-orange-600 hover:bg-orange-50 active:bg-orange-100 rounded-xl transition-colors ${mode !== 'BUILD' ? 'opacity-30 pointer-events-none' : ''}`} title="Rotate Y">
+                    <button onClick={() => { if (mode === 'BUILD') setRotation(r => ({ ...r, y: r.y + 1 })); }} className={`p-2 text-orange-600 hover:bg-orange-50 active:bg-orange-100 rounded-xl transition-colors flex flex-col items-center gap-1 min-w-[60px] ${mode !== 'BUILD' ? 'opacity-30 pointer-events-none' : ''}`} title="Rotate Y">
                         <Layers size={20} />
+                        <span className="text-[9px] font-bold uppercase">Rot Y</span>
                     </button>
-                    <div className="w-px h-8 bg-gray-300 mx-1"></div>
+                    <div className="w-px h-8 bg-gray-300 mx-1 shrink-0"></div>
                     {mode === 'EDIT' ? (
                         <>
-                            <button onClick={handleCopy} disabled={selectedBlockIds.size === 0} className="p-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-xl disabled:opacity-30 transition-colors" title="Copy">
+                            <button onClick={handleCopy} disabled={selectedBlockIds.size === 0} className="p-2 text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-xl disabled:opacity-30 transition-colors flex flex-col items-center gap-1 min-w-[60px]" title="Copy">
                                 <Copy size={20} />
+                                <span className="text-[9px] font-bold uppercase">Copy</span>
                             </button>
-                            <button onClick={handlePaste} disabled={clipboard.length === 0} className="p-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-xl disabled:opacity-30 transition-colors" title="Paste">
+                            <button onClick={handlePaste} disabled={clipboard.length === 0} className="p-2 text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-xl disabled:opacity-30 transition-colors flex flex-col items-center gap-1 min-w-[60px]" title="Paste">
                                 <Clipboard size={20} />
+                                <span className="text-[9px] font-bold uppercase">Paste</span>
                             </button>
-                            <button onClick={handleDeleteSelected} disabled={selectedBlockIds.size === 0 && selectedPropIds.size === 0} className="p-3 text-red-600 hover:bg-red-50 active:bg-red-100 rounded-xl disabled:opacity-30 transition-colors" title="Delete">
+                            <button onClick={handleDeleteSelected} disabled={selectedBlockIds.size === 0 && selectedPropIds.size === 0} className="p-2 text-red-600 hover:bg-red-50 active:bg-red-100 rounded-xl disabled:opacity-30 transition-colors flex flex-col items-center gap-1 min-w-[60px]" title="Delete">
                                 <Trash2 size={20} />
+                                <span className="text-[9px] font-bold uppercase">Delete</span>
+                            </button>
+                            <button onClick={() => setMode('BUILD')} className="p-2 text-orange-600 bg-orange-50 hover:bg-orange-100 active:bg-orange-200 rounded-xl font-bold text-sm px-4 flex flex-col items-center gap-1 min-w-[60px]">
+                                <Box size={20} />
+                                <span className="text-[9px] font-bold uppercase text-orange-700">Build</span>
                             </button>
                         </>
                     ) : (
-                        <button onClick={() => setMode('EDIT')} className="p-3 text-blue-600 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 rounded-xl font-bold text-sm px-4">
-                            Select
+                        <button onClick={() => setMode('EDIT')} className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 rounded-xl font-bold text-sm px-4 flex flex-col items-center gap-1 min-w-[60px]">
+                            <MousePointer2 size={20} />
+                            <span className="text-[9px] font-bold uppercase text-blue-700">Select</span>
                         </button>
                     )}
                  </div>

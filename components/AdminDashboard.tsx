@@ -317,6 +317,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
         {activeTab === 'APP' && (
             <div className="space-y-6">
                  <div>
+                    <h3 className="text-xs font-bold text-indigo-600 uppercase tracking-wider border-b pb-1 mb-3">General Settings</h3>
+                    <div className="flex justify-between items-center bg-white p-2 rounded border mb-4">
+                        <span className="text-xs font-medium text-gray-700 font-bold">Assembly Speed (blocks/min)</span>
+                        <input 
+                            type="number" step="0.5" min="0.1" 
+                            value={appConfig?.assemblySpeedBlocksPerMinute || 4} 
+                            onChange={(e) => AppConfigService.setAssemblySpeed(parseFloat(e.target.value))}
+                            className="w-20 p-1 text-xs text-center border rounded bg-gray-50 focus:bg-white focus:ring-1 focus:ring-indigo-500 outline-none font-bold"
+                        />
+                    </div>
                     <h3 className="text-xs font-bold text-indigo-600 uppercase tracking-wider border-b pb-1 mb-3">Economics & Physics</h3>
                     <div className="grid grid-cols-[1fr_60px_60px_60px] gap-2 items-end mb-2">
                          <span className="text-[10px] font-bold text-gray-400">BLOCK</span>

@@ -279,6 +279,7 @@ export const APP_CONFIG: AppConfig = {
   prices: { [BrockType.BASE]: 11.50, [BrockType.DOUBLE]: 23.08, [BrockType.CONN_1D]: 8.87, [BrockType.CONN_2D]: 17.77, [BrockType.CONN_3D]: 22.14, [BrockType.CONN_4D]: 26.56, [BrockType.TERMINAL]: 4.44 },
   weights: { [BrockType.BASE]: 1.22, [BrockType.DOUBLE]: 2.45, [BrockType.CONN_1D]: 0.94, [BrockType.CONN_2D]: 1.88, [BrockType.CONN_3D]: 2.35, [BrockType.CONN_4D]: 2.82, [BrockType.TERMINAL]: 0.47 },
   sdgImpacts: { [BrockType.BASE]: 20.00, [BrockType.DOUBLE]: 40.16, [BrockType.CONN_1D]: 15.41, [BrockType.CONN_2D]: 30.82, [BrockType.CONN_3D]: 38.52, [BrockType.CONN_4D]: 46.23, [BrockType.TERMINAL]: 7.70 },
+  assemblySpeedBlocksPerMinute: 4,
   prompts: {
     instructionGeneration: "Analyze layers. Identify interlocking points. Generate assembly steps.",
     designValidation: "Check structural integrity and interlock logic."
@@ -301,6 +302,7 @@ export const AppConfigService = {
     setPrice: (type: BrockType, price: number) => { APP_CONFIG.prices[type] = price; BROCK_SPECS[type].cost = price; notify(); },
     setWeight: (type: BrockType, weight: number) => { APP_CONFIG.weights[type] = weight; BROCK_SPECS[type].weight = weight; notify(); },
     setSdgImpact: (type: BrockType, val: number) => { APP_CONFIG.sdgImpacts[type] = val; notify(); },
+    setAssemblySpeed: (speed: number) => { APP_CONFIG.assemblySpeedBlocksPerMinute = speed; notify(); },
     setPrompt: (key: keyof AppConfig['prompts'], val: string) => { APP_CONFIG.prompts[key] = val; notify(); },
     setMaterials: (materials: MaterialDef[]) => { APP_CONFIG.materials = materials; notify(); },
     setColor: (type: BrockType, color: string) => { BROCK_SPECS[type].color = color; notify(); },
@@ -319,6 +321,7 @@ export const AppConfigService = {
             [BrockType.BASE]: 10, [BrockType.DOUBLE]: 20, [BrockType.CONN_1D]: 8,
             [BrockType.CONN_2D]: 15, [BrockType.CONN_3D]: 18, [BrockType.CONN_4D]: 22, [BrockType.TERMINAL]: 5
         };
+        APP_CONFIG.assemblySpeedBlocksPerMinute = 4;
         Object.keys(BROCK_SPECS).forEach(key => {
             const type = key as BrockType;
             BROCK_SPECS[type].cost = APP_CONFIG.prices[type];
