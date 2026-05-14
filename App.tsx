@@ -8,6 +8,7 @@ import { GeoConfig } from './services/geometryConfig';
 import { AdminDashboard } from './components/AdminDashboard';
 import { BOMModal } from './components/BOMModal';
 import { ImportWizard } from './components/ImportWizard';
+import { exportBlocksToOBJ } from './services/importer';
 import { HelpModal } from './components/HelpModal';
 import { SubmitModal } from './components/SubmitModal';
 import { ChallengeModal, ChallengeHUD } from './components/ChallengeSystem';
@@ -16,7 +17,7 @@ import { Challenge } from './types';
 import { 
   Box, RotateCw, Play, Pause, ShoppingCart, Trash2, Info, Layers, Undo, Redo, 
   Image as ImageIcon, Hammer, MousePointer2, Save, Upload, Move, AlertTriangle, Focus, Magnet, Settings, Copy, Clipboard, Leaf, Euro, Cuboid, Ruler, Layout, Grid3X3, Camera, Scaling, FileBox, HelpCircle, ChevronUp, ChevronDown, Trophy, Activity, Sun, Hand,
-  Check, Bed, Laptop, Lightbulb, Book, Star, Lock, Armchair, Table, Monitor, Coffee, Square, Sofa, Image, DoorOpen, Maximize, TrendingUp, Columns, X, Clock
+  Check, Bed, Laptop, Lightbulb, Book, Star, Lock, Armchair, Table, Monitor, Coffee, Square, Sofa, Image, DoorOpen, Maximize, TrendingUp, Columns, X, Clock, FileDown
 } from 'lucide-react';
 
 const PropIcon: React.FC<{ iconName: string; className?: string }> = ({ iconName, className }) => {
@@ -619,6 +620,16 @@ const App: React.FC = () => {
       a.click(); URL.revokeObjectURL(url);
   };
 
+  const handleExportOBJ = () => {
+      if (blocks.length === 0) return alert("Nothing to export.");
+      const objData = exportBlocksToOBJ(blocks);
+      const blob = new Blob([objData], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `corkbrick-model-${new Date().toISOString().slice(0,10)}.obj`;
+      a.click(); URL.revokeObjectURL(url);
+  };
+
   const handleLoadScene = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]; if (!file) return;
       const reader = new FileReader();
@@ -970,9 +981,11 @@ const App: React.FC = () => {
              <button onClick={() => setShowDashboard(!showDashboard)} className={`p-2 rounded-lg transition-colors ${showDashboard ? 'bg-gray-200 text-gray-800' : 'text-gray-600 hover:bg-gray-100'}`} title="Geometry Settings"><Settings size={20}/></button>
              <button onClick={handleScreenshot} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg" title="Take Screenshot"><Camera size={20} /></button>
              <div className="w-px h-6 bg-gray-300 mx-1 hidden sm:block"></div>
-             <button onClick={handleSaveScene} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg" title="Save Scene"><Save size={20} /></button>
-             <button onClick={() => fileInputRef.current?.click()} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg" title="Load Scene"><Upload size={20} /></button>
-             <button onClick={() => setShowImport(true)} className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Import 3D Model"><FileBox size={20} /></button>
+             <button onClick={handleSaveScene} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg" title="Save Scene (.json)"><Save size={20} /></button>
+             <button onClick={() => fileInputRef.current?.click()} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg" title="Load Scene (.json)"><Upload size={20} /></button>
+             <div className="w-px h-6 bg-gray-300 mx-1 hidden sm:block"></div>
+             <button onClick={() => setShowImport(true)} className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Import 3D Model (.dae, .obj, .gltf)"><FileBox size={20} /></button>
+             <button onClick={handleExportOBJ} className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg" title="Export 3D Model (.obj)"><FileDown size={20} /></button>
              <div className="w-px h-6 bg-gray-300 mx-1 hidden sm:block"></div>
              <button onClick={toggleInstructionMode} className={`px-4 py-2 rounded-lg flex items-center gap-2 transition ${instructionMode ? 'bg-indigo-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}><Layers size={18} /><span className="hidden md:inline">{instructionMode ? 'Exit' : 'Instructions'}</span></button>
              <button onClick={() => setShowBOM(true)} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium shadow-sm"><ShoppingCart size={18} /><span className="hidden md:inline">Order BOM</span></button>

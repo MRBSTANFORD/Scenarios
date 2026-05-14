@@ -1,8 +1,12 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { ColladaLoader } from 'three/addons/loaders/ColladaLoader.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
 import { PlacedBrock, BrockType } from '../types';
 import { BROCK_SPECS } from '../constants';
+import { getRotatedDimensions } from './builder';
 
 /**
  * Intelligent Geometry Matcher
@@ -12,13 +16,13 @@ const matchBlockType = (size: THREE.Vector3, name: string): BrockType | null => 
     // Sort dimensions to ignore rotation (e.g. 0.2x0.4x0.2 is same as 0.4x0.2x0.2)
     const dims = [size.x, size.y, size.z].sort((a, b) => a - b);
     
-    // Tolerances (in meters)
-    const TOLERANCE = 0.05; 
+    // Tolerances (in meters) - loosened to 0.08 to handle bad Sketchup/AutoCAD exports
+    const TOLERANCE = 0.08; 
     const isApprox = (a: number, b: number) => Math.abs(a - b) < TOLERANCE;
 
     // 1. BASE / TERMINAL / CONN_1D (All roughly 0.2 x 0.2 x 0.2 bounding box)
     if (isApprox(dims[0], 0.2) && isApprox(dims[1], 0.2) && isApprox(dims[2], 0.2)) {
-        const lowerName = name.toLowerCase();
+        const lowerName = (name || '').toLowerCase();
         if (lowerName.includes('conn') || lowerName.includes('1d')) return BrockType.CONN_1D;
         if (lowerName.includes('term') || lowerName.includes('cap')) return BrockType.TERMINAL;
         return BrockType.BASE; // Default
@@ -47,109 +51,140 @@ const matchBlockType = (size: THREE.Vector3, name: string): BrockType | null => 
     return null;
 };
 
-export const parseGltfToBlocks = async (arrayBuffer: ArrayBuffer): Promise<{ blocks: PlacedBrock[], stats: { found: number, ignored: number } }> => {
-    const loader = new GLTFLoader();
-    
-    return new Promise((resolve, reject) => {
-        loader.parse(arrayBuffer, '', (gltf) => {
-            const blocks: PlacedBrock[] = [];
-            let ignored = 0;
-            const scene = gltf.scene;
-
-            // 1. Normalize Scale
-            // SketchUp exports can vary. We try to detect if it's in mm or meters.
-            // Heuristic: Check the first object. If it's huge (> 100), assume mm.
-            let scaleFactor = 1.0;
-            const box = new THREE.Box3().setFromObject(scene);
-            const size = new THREE.Vector3();
-            box.getSize(size);
+export const parse3DModelToBlocks = async (file: File): Promise<{ blocks: PlacedBrock[], stats: { found: number, ignored: number } }> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let scene: THREE.Group | THREE.Scene;
+            const ext = file.name.split('.').pop()?.toLowerCase();
             
-            // If the scene is massive (e.g. 200 units high), it's likely millimeters. 
-            // Corkbrick Double is 0.4m. If it comes in as 400.0, we need to divide by 1000.
-            if (size.y > 50 || size.x > 50) {
-                scaleFactor = 0.001;
-            } else if (size.y > 5 && size.y < 50) {
-                // Centimeters? Unlikely default, but possible.
-                scaleFactor = 0.01;
+            if (ext === 'gltf' || ext === 'glb') {
+                const loader = new GLTFLoader();
+                const buffer = await file.arrayBuffer();
+                loader.parse(buffer, '', (gltf) => {
+                    processScene(gltf.scene, resolve);
+                }, (error) => reject(error));
+            } else if (ext === 'dae') {
+                const loader = new ColladaLoader();
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const text = e.target?.result as string;
+                    const collada = loader.parse(text, '');
+                    processScene(collada.scene, resolve);
+                };
+                reader.onerror = reject;
+                reader.readAsText(file);
+            } else if (ext === 'obj') {
+                const loader = new OBJLoader();
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const text = e.target?.result as string;
+                    const objScene = loader.parse(text);
+                    processScene(objScene, resolve);
+                };
+                reader.onerror = reject;
+                reader.readAsText(file);
+            } else {
+                reject(new Error("Unsupported file format"));
             }
-
-            scene.traverse((child) => {
-                if ((child as THREE.Mesh).isMesh) {
-                    const mesh = child as THREE.Mesh;
-                    
-                    // Apply global scale normalization locally for measurement
-                    const worldScale = new THREE.Vector3();
-                    mesh.getWorldScale(worldScale);
-                    worldScale.multiplyScalar(scaleFactor);
-
-                    // Get Bounding Box in World Space (Scaled)
-                    // We temporarily apply the scale factor to the geometry to measure it
-                    mesh.geometry.computeBoundingBox();
-                    const bbox = mesh.geometry.boundingBox!.clone();
-                    
-                    // Calculate Dimensions in Meters
-                    const dims = new THREE.Vector3();
-                    dims.subVectors(bbox.max, bbox.min);
-                    dims.multiply(worldScale); // Apply the detected unit scale
-                    
-                    // Match Type
-                    const type = matchBlockType(dims, mesh.name || '');
-                    
-                    if (type) {
-                        // Calculate Position
-                        const worldPos = new THREE.Vector3();
-                        mesh.getWorldPosition(worldPos);
-                        worldPos.multiplyScalar(scaleFactor); // Convert to meters
-                        
-                        // Convert Meters to Grid Units (1 Unit = 0.2m)
-                        const gx = Math.round(worldPos.x / 0.2);
-                        const gy = Math.round(worldPos.y / 0.2); // Y is up in SketchUp GLTF usually
-                        const gz = Math.round(worldPos.z / 0.2);
-
-                        // Fix Origin Offset: Bounding Box Center vs Mesh Pivot
-                        // SketchUp pivots vary. We assume the mesh position is meaningful, 
-                        // but usually we need to adjust based on the centroid.
-                        
-                        // For this V1, we trust the mesh pivot is roughly centered or cornered.
-                        // A more robust way is snapping the centroid.
-                        const center = new THREE.Vector3();
-                        bbox.getCenter(center);
-                        center.applyMatrix4(mesh.matrixWorld);
-                        center.multiplyScalar(scaleFactor);
-                        
-                        const snappedPos = {
-                            x: Math.round(center.x / 0.2) * 0.2, // Snap center to 0.2m grid
-                            y: Math.round(center.y / 0.2) * 0.2, 
-                            z: Math.round(center.z / 0.2) * 0.2
-                        };
-
-                        // Convert back to Grid Integers/Halves for our coordinate system
-                        // Our system: Base is at Y=0 (meaning center is 0.1? No, logic says Y=0 is ground layer structural)
-                        // Actually types.ts/constants.ts says: 
-                        // "Layer 0 (Ground)... Position.y = 0"
-                        // But Builder geometry says Base size y=0.5 (units) -> 0.1m.
-                        // Let's just use the Grid Units directly.
-                        
-                        blocks.push({
-                            id: Math.random().toString(36).substr(2, 9),
-                            type: type,
-                            position: { 
-                                x: Math.round(center.x / 0.2 * 2) / 2, // Snap to 0.5 units 
-                                y: Math.round(center.y / 0.2 * 2) / 2, 
-                                z: Math.round(center.z / 0.2 * 2) / 2 
-                            },
-                            rotation: { x: 0, y: 0, z: 0 }, // TODO: Infer rotation from bbox alignment
-                            timestamp: Date.now()
-                        });
-                    } else {
-                        ignored++;
-                    }
-                }
-            });
-
-            resolve({ blocks, stats: { found: blocks.length, ignored } });
-        }, undefined, (error) => {
-            reject(error);
-        });
+        } catch (err) {
+            reject(err);
+        }
     });
+};
+
+const processScene = (scene: THREE.Object3D, resolve: Function) => {
+    const blocks: PlacedBrock[] = [];
+    let ignored = 0;
+
+    // 1. Normalize Scale
+    let scaleFactor = 1.0;
+    const box = new THREE.Box3().setFromObject(scene);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    
+    // Scale heuristic (inches, mm, cm vs meters based on max size)
+    const maxDim = Math.max(size.x, size.y, size.z);
+    if (maxDim > 500) {
+        scaleFactor = 0.001; // mm
+    } else if (maxDim > 50) {
+        scaleFactor = 0.01; // cm
+    } else if (maxDim > 15) {
+        scaleFactor = 0.0254; // likely inches
+    } // otherwise assume meters
+
+    scene.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            
+            const worldScale = new THREE.Vector3();
+            mesh.getWorldScale(worldScale);
+            worldScale.multiplyScalar(scaleFactor);
+
+            mesh.geometry.computeBoundingBox();
+            if (!mesh.geometry.boundingBox) return;
+            
+            const bbox = mesh.geometry.boundingBox.clone();
+            
+            const dims = new THREE.Vector3();
+            dims.subVectors(bbox.max, bbox.min);
+            dims.multiply(worldScale);
+            
+            const type = matchBlockType(dims, mesh.name || '');
+            
+            if (type) {
+                const worldPos = new THREE.Vector3();
+                mesh.getWorldPosition(worldPos);
+                
+                const center = new THREE.Vector3();
+                bbox.getCenter(center);
+                center.applyMatrix4(mesh.matrixWorld);
+                center.multiplyScalar(scaleFactor);
+                
+                blocks.push({
+                    id: Math.random().toString(36).substr(2, 9),
+                    type: type,
+                    position: { 
+                        x: Math.round(center.x / 0.2 * 2) / 2,
+                        y: Math.round(center.y / 0.2 * 2) / 2, 
+                        z: Math.round(center.z / 0.2 * 2) / 2 
+                    },
+                    rotation: { x: 0, y: 0, z: 0 },
+                    timestamp: Date.now()
+                });
+            } else {
+                ignored++;
+            }
+        }
+    });
+
+    resolve({ blocks, stats: { found: blocks.length, ignored } });
+};
+
+/**
+ * Exports the current blocks to an OBJ 3D Model file format.
+ */
+export const exportBlocksToOBJ = (blocks: PlacedBrock[]): string => {
+    const virtualScene = new THREE.Scene();
+    
+    blocks.forEach(b => {
+        // Dimensions in meters (1 unit = 0.2m)
+        const blockDims = getRotatedDimensions(b.type, b.rotation);
+        const geometry = new THREE.BoxGeometry(blockDims.x * 0.2, blockDims.y * 0.2, blockDims.z * 0.2);
+        
+        // Material is needed for exporters though OBJ mostly cares about geometry
+        const material = new THREE.MeshBasicMaterial({ color: BROCK_SPECS[b.type].color || 0xdddddd });
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        // Our positions are in "Grid Units" (1 unit = 0.2m). 
+        // We multiply by 0.2 to match real meters
+        mesh.position.set(b.position.x * 0.2, b.position.y * 0.2, b.position.z * 0.2);
+        
+        // Names help CAD identify matching objects
+        mesh.name = `Corkbrick_${BROCK_SPECS[b.type].name.replace(/\s+/g, '_')}_${b.id}`;
+        
+        virtualScene.add(mesh);
+    });
+
+    const exporter = new OBJExporter();
+    return exporter.parse(virtualScene);
 };

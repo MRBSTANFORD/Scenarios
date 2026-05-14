@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, MousePointer2, Hammer, Hand, Move, Keyboard, Settings, Info, Heart, Leaf, Box, Layers, Mouse, Trophy, Activity, Sun, FileBox, ShoppingCart, Layout, Camera, Share2 } from 'lucide-react';
+import { X, MousePointer2, Hammer, Hand, Move, Keyboard, Settings, Info, Heart, Leaf, Box, Layers, Mouse, Trophy, Activity, Sun, FileBox, ShoppingCart, Layout, Camera, Share2, Upload, Download } from 'lucide-react';
 
 interface HelpModalProps {
   onClose: () => void;
@@ -234,10 +234,34 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
                     <div className="flex gap-4 items-start p-4 bg-gray-50 rounded-xl border border-gray-200">
                         <div className="bg-blue-600 text-white p-2 rounded-lg shrink-0"><FileBox size={24}/></div>
                         <div>
-                            <h4 className="font-bold text-gray-900 mb-1">Import 3D Models & Load Scenes</h4>
-                            <p className="text-sm text-gray-600 mb-2">
-                                Import SketchUp models (.glb/.gltf) or load previously saved <span className="font-bold">Corkbrick</span><span className="font-normal">Play</span> scenes. If you already have blocks in your workspace, you can choose to <strong>Replace</strong> your current scene or <strong>Add</strong> the imported design to your existing scene (it will be placed next to your current build).
-                            </p>
+                            <h4 className="font-bold text-gray-900 mb-2">Importing & Exporting to CAD Systems (SketchUp, AutoCAD)</h4>
+                            
+                            <div className="space-y-4">
+                                <div>
+                                    <h5 className="font-bold text-gray-800 flex items-center gap-2 mb-1"><Upload size={16} className="text-blue-600" /> How to Import a 3D Model</h5>
+                                    <p className="text-sm text-gray-600 mb-2">
+                                        You can easily import complete Corkbrick solutions that were designed in other CAD software (like SketchUp or AutoCAD) or downloaded directly from 3D Warehouse.
+                                    </p>
+                                    <ol className="list-decimal pl-5 space-y-1 text-sm text-gray-700">
+                                        <li>In your CAD software, export your design as a <strong>Collada (.DAE)</strong>, <strong>.OBJ</strong>, or <strong>.GLTF / .GLB</strong> file. Ensure components are exported clearly in standard dimensions.</li>
+                                        <li>In Corkbrick Play, click the <strong>Import 3D Model</strong> button (the box with a downward arrow icon) in the top right menu block.</li>
+                                        <li>Select your exported file. The system will automatically detect the Corkbrick module shapes and precisely snap them into our grid.</li>
+                                        <li>If you already have blocks in your workspace, you can choose to <strong>Replace</strong> your current scene or <strong>Add</strong> the imported design to your existing scene.</li>
+                                    </ol>
+                                </div>
+                                
+                                <div className="pt-3 border-t border-gray-200">
+                                    <h5 className="font-bold text-gray-800 flex items-center gap-2 mb-1"><Download size={16} className="text-indigo-600" /> How to Export to CAD Software</h5>
+                                    <p className="text-sm text-gray-600 mb-2">
+                                        If you want to take your Corkbrick Play design and compliment it in another architectural context (like placing it inside a room plan in AutoCAD or SketchUp), you can easily export it.
+                                    </p>
+                                    <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                                        <li>Click the <strong>Export 3D Model</strong> button (the document with a downward arrow icon) in the top menu.</li>
+                                        <li>The app will automatically generate and download an <strong>.OBJ</strong> file containing the accurate geometry of your exact Corkbrick build.</li>
+                                        <li>You can now open or import this .OBJ file into standard CAD software (SketchUp, AutoCAD, Revit, Blender, etc.) to continue your architectural work!</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
