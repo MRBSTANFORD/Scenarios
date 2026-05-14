@@ -1,20 +1,32 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# CORKBRICK Play 🧱🌿
 
-# Run and deploy your AI Studio app
+Welcome to the **CORKBRICK Play** repository! 
 
-This contains everything you need to run your app locally.
+CORKBRICK Play is an interactive, web-based 3D simulation and building tool designed to digitally construct, experiment with, and order real-world **CORKBRICK** structures.
 
-View your app in AI Studio: https://ai.studio/apps/41164a56-a7b6-4687-920e-0ebb5627f683
+Through the platform, users can explore endless modular designs, run physics and feasibility checks, calculate the environmental (SDG) impact of their creations, and smoothly transition from digital design to physical reality.
 
-## Run Locally
+🌐 **Website:** [corkbrick.com](https://corkbrick.com)
 
-**Prerequisites:**  Node.js
+---
 
+## 📖 Vision & Philosophy
+We believe technology should be used as a laboratory to bring new sustainable solutions to the real world, reinforcing human relationships rather than isolating people. 
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+To understand the core mission behind CORKBRICK Play—including our dedication to **Positive Gamification**, sustainability, and using tech as a force for good—please read our [**PHILOSOPHY.md**](./PHILOSOPHY.md) document. 
+
+## 🛠 Features
+- **Intuitive 3D Builder**: Snap-to-grid placement using the 7 standard Corkbrick blocks.
+- **Real-Time Physics & Stats**: Calculate cost, weight, assembly time, and Sustainable Development Goal (SDG) impact instantly.
+- **Challenge System**: Gamified objectives to encourage creative, sustainable problem-solving.
+- **CAD Integration**: Import and export designs (.OBJ, .GLTF, .DAE) seamlessly from software like SketchUp and AutoCAD.
+- **Direct to Reality**: Generate a Bill of Materials (BOM) and order the real cork blocks needed to build your digital creation in your living room.
+
+## 🤝 Get Involved
+We are actively seeking developers, designers, and visionaries who are passionate about sustainability and positive gamification. Whether you want to improve the 3D rendering engine, enhance the UI, or contribute new challenge gamification mechanics, your skills can help make the world a better, greener place.
+
+- Read our [Philosophy](./PHILOSOPHY.md)
+- Check out the open issues
+- Submit a Pull Request
+
+Let's build a better world together!
